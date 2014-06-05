@@ -1,6 +1,6 @@
 /**
  * Angular Carousel - Mobile friendly touch carousel for AngularJS
- * @version v0.2.2 - 2014-04-02
+ * @version v0.2.3 - 2014-06-05
  * @link http://revolunet.github.com/angular-carousel
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -35,13 +35,18 @@ angular.module('angular-carousel')
         if (scope.index < scope.items.length-1) scope.index++;
       };
     },
-    template: '<div class="rn-carousel-controls">' +
-                '<span class="rn-carousel-control rn-carousel-control-prev" ng-click="prev()" ng-if="index > 0"></span>' +
-                '<span class="rn-carousel-control rn-carousel-control-next" ng-click="next()" ng-if="index < items.length - 1"></span>' +
-              '</div>'
+    templateUrl: 'carousel-controls.html'
   };
 }]);
 
+angular.module('angular-carousel').run(['$templateCache', function($templateCache) {
+  $templateCache.put('carousel-controls.html',
+    '<div class="rn-carousel-controls">\n' +
+    '  <span class="rn-carousel-control rn-carousel-control-prev" ng-click="prev()" ng-if="index > 0"></span>\n' +
+    '  <span class="rn-carousel-control rn-carousel-control-next" ng-click="next()" ng-if="index < items.length - 1"></span>\n' +
+    '</div>'
+  );
+}]);
 angular.module('angular-carousel')
 
 .directive('rnCarouselIndicators', [function() {
@@ -52,10 +57,16 @@ angular.module('angular-carousel')
       items: '=',
       index: '='
     },
-    template: '<div class="rn-carousel-indicator">' +
-                '<span ng-repeat="item in items" ng-click="$parent.index=$index" ng-class="{active: $index==$parent.index}"></span>' +
-              '</div>'
+    templateUrl: 'carousel-indicators.html'
   };
+}]);
+
+angular.module('angular-carousel').run(['$templateCache', function($templateCache) {
+  $templateCache.put('carousel-indicators.html',
+      '<div class="rn-carousel-indicator">\n' +
+      ' <span ng-repeat="item in items" ng-click="$parent.index=$index" ng-class="{active: $index==$parent.index}"></span>\n' +
+      '</div>'
+  );
 }]);
 
 (function() {
@@ -133,6 +144,7 @@ angular.module('angular-carousel')
                         destination,
                         slidesCount = 0,
                         swipeMoved = false,
+                        animOnIndexChange = true,
                         // javascript based animation easing
                         timestamp;
 
@@ -150,6 +162,10 @@ angular.module('angular-carousel')
                             goToSlide(newValue, true);
                         });
 
+                    }
+
+                    if (angular.isDefined(iAttributes.rnCarouselPreventAnimation)) {
+                        animOnIndexChange = false;
                     }
 
                     // enable carousel indicator
@@ -189,7 +205,7 @@ angular.module('angular-carousel')
                                         newValue = 0;
                                         updateParentIndex(newValue);
                                     }
-                                    goToSlide(newValue, true);
+                                    goToSlide(newValue, animOnIndexChange);
                                 }
                             });
                             isIndexBound = true;
@@ -468,9 +484,7 @@ angular.module('angular-carousel')
                         has3d,
                         transforms = {
                             'webkitTransform':'-webkit-transform',
-                            'OTransform':'-o-transform',
                             'msTransform':'-ms-transform',
-                            'MozTransform':'-moz-transform',
                             'transform':'transform'
                         };
                         // Add it to the body to get the computed style
